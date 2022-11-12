@@ -1,0 +1,2 @@
+# seo-nuxt-developer-frazis
+
