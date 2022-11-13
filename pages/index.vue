@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <BaseHeader />
+  <div v-if="parkings && parkings.length">
+    <BaseHeader :parking="parkings[0]" />
 
-    <ParkingLIst />
+    <ParkingList :parkings="parkings.slice(0, 3)" />
 
     <section class="container px-6 py-10 mx-auto">
       <h1
@@ -67,5 +67,42 @@
 <script>
 export default {
   name: "Home",
+  data() {
+    return {
+      parkings: [],
+    };
+  },
+  async fetch() {
+    this.parkings = await this.fetchData();
+  },
+  head() {
+    return {
+      title: this.parkings[0].name,
+      meta: [
+        {
+          hid: "description",
+          name: "description",
+          content:
+            "Parkos compares parking providers which offer short term and long term parkings at and airports in The Netherlands, Belgium, Italy and Germany.",
+        },
+      ],
+    };
+  },
+  methods: {
+    async fetchData() {
+      return await this.$axios
+        .$get(
+          `/api/ajax/locationSearchJSON/?arrival=2022-11-18&departure=2022-11-25&arrivalTime=12:00&departureTime=12:00&location=parkeren-schiphol&version=3&sort_f=price&sort_w=asc`
+        )
+        .then((res) => {
+          return Object.entries(res.available)
+            .map((item) => {
+              const [name, data] = item;
+              return { name: name.replace("-", " "), ...data };
+            })
+            .sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+        });
+    },
+  },
 };
 </script>
